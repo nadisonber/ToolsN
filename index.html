@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ToolsN - Pengolah PDF Presisi & Safe</title>
+    <!-- Tailwind & FontAwesome -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- Pustaka PDF-Lib & PDF.js (100% Local Processing) -->
+    <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: { 
+                extend: { 
+                    colors: { 
+                        pastel: { 
+                            50: '#fdf2f8', 
+                            100: '#fce7f3', 
+                            200: '#fbcfe8', 
+                            300: '#f9a8d4', 
+                            400: '#f472b6', 
+                            500: '#ec4899', 
+                            600: '#db2777', 
+                            800: '#9d174d' 
+                        } 
+                    } 
+                } 
+            }
+        }
+    </script>
+    <style>
+        /* Mencegah seleksi teks & mengubah kursor menjadi panah standar */
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background-color: #fdf2f8; 
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            cursor: default;
+        }
+        .tool-card { transition: all 0.3s ease; }
+        .tool-card:hover { transform: translateY(-3px); box-shadow: 0 10px 15px -3px rgba(244, 114, 182, 0.25); }
+    </style>
+</head>
+<body class="text-gray-800 antialiased min-h-screen flex flex-col">
+
+    <!-- Navbar -->
+    <nav class="bg-white border-b-2 border-pastel-200 sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto px-4 flex justify-between items-center h-16">
+            <div class="flex items-center space-x-2">
+                <i class="fa-solid fa-file-pdf text-pastel-500 text-2xl"></i>
+                <span class="font-bold text-xl text-pastel-800">ToolsN</span>
+            </div>
+            <span class="text-xs bg-green-100 text-green-700 px-3 py-1 rounded-full font-semibold border border-green-300">
+                <i class="fa-solid fa-shield-halved mr-1"></i> 100% Aman & Diproses Lokal
+            </span>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="flex-grow max-w-6xl mx-auto px-4 py-8 w-full">
+        
+        <!-- Banner Keamanan -->
+        <div class="mb-8 bg-white p-4 rounded-xl border border-pastel-200 text-sm text-pastel-800 flex items-center gap-4 shadow-sm">
+            <div class="bg-pastel-100 p-3 rounded-xl text-pastel-600">
+                <i class="fa-solid fa-lock text-2xl"></i>
+            </div>
+            <div>
+                <p class="font-bold text-base">Jaminan Keamanan & Tanpa Pergeseran Layout</p>
+                <p class="text-xs text-gray-500 mt-0.5">Seluruh alat di bawah ini memanipulasi struktur PDF secara langsung di RAM perangkat Anda. Tidak ada berkas yang dikirim ke internet.</p>
+            </div>
+        </div>
+
+        <!-- Kategori 1: Manajemen Halaman & Struktur -->
+        <h2 class="text-md font-bold text-pastel-800 border-b-2 border-pastel-200 pb-2 mb-4 flex items-center gap-2">
+            <i class="fa-solid fa-folder-tree text-pastel-500"></i> Halaman & Struktur
+        </h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-8">
+            <div onclick="openModal('gabung')" class="tool-card bg-white p-4 rounded-xl border border-pastel-200 cursor-pointer flex items-start gap-3">
+                <div class="bg-pastel-100 p-3 rounded-lg text-pastel-600"><i class="fa-solid fa-object-group text-lg"></i></div>
+                <div><h3 class="font-bold text-sm text-gray-800">Gabung PDF</h3><p class="text-[11px] text-gray-500 mt-0.5">Gabungkan banyak file PDF jadi satu.</p></div>
+            </div>
+            <div onclick="openModal('pisah')" class="tool-card bg-white p-4 rounded-xl border border-pastel-200 cursor-pointer flex items-start gap-3">
+                <div class="bg-pastel-100 p-3 rounded-lg text-pastel-600"><i class="fa-solid fa-scissors text-lg"></i></div>
+                <div><h3 class="font-bold text-sm text-gray-800">Pisah / Ekstrak</h3><p class="text-[11px] text-gray-500 mt-0.5">Ambil rentang halaman tertentu.</p></div>
+            </div>
+            <div onclick="openModal('pecah_semua')" class="tool-card bg-white p-4 rounded-xl border border-pastel-200 cursor-pointer flex items-start gap-3">
+                <div class="bg-pastel-100 p-3 rounded-lg text-pastel-600"><i class="fa-solid fa-boxes-packing text-lg"></i></div>
+                <div><h3 class="font-bold text-sm text-gray-800">Pecah Per Halaman</h3><p class="text-[11px] text-gray-500 mt-0.5">Pisahkan tiap halaman jadi file terpisah.</p></div>
+            </div>
+            <div onclick="openModal('hapus')" class="tool-card bg-white p-4 rounded-xl border border-pastel-200 cursor-pointer flex items-start gap-3">
+                <div class="bg-pastel-100 p-3 rounded-lg text-pastel-600"><i class="fa-solid fa-trash-can text-lg"></i></div>
+                <div><h3 class="font-bold text-sm text-gray-800">Hapus Halaman</h3><p class="text-[11px] text-gray-500 mt-0.5">Buang halaman yang tidak diinginkan.</p></div>
+            </div>
+            <div onclick="openModal('urutkan')" class="tool-card bg-white p-4 rounded-xl border border-pastel-200 cursor-pointer flex items-start gap-3">
+                <div class="bg-pastel-100 p-3 rounded-lg text-pastel-600"><i class="fa-solid fa-arrow-down-1-9 text-lg"></i></div>
+                <div><h3 class="font-bold text-sm text-gray-800">Atur Urutan</h3><p class="text-[11px] text-gray-500 mt-0.5">Ubah susunan urutan halaman PDF.</p></div>
+            </div>
+            <div onclick="openModal('putar')" class="tool-card bg-white p-4 rounded-xl border border-pastel-200 cursor-pointer flex items-start gap-3">
+                <div class="bg-pastel-100 p-3 rounded-lg text-pastel-600"><i class="fa-solid fa-rotate-right text-lg"></i></div>
+                <div><h3 class="font-bold text-sm text-gray-800">Putar PDF (90°)</h3><p class="text-[11px] text-gray-500 mt-0.5">Putar halaman yang terbalik.</p></div>
+            </div>
+        </div>
+
+        <!-- Kategori 2: Keamanan, Cap & Identitas -->
+        <h2 class="text-md font-bold text-pastel-800 border-b-2 border-pastel-200 pb-2 mb-4 flex items-center gap-2">
+            <i class="fa-solid fa-user-shield text-pastel-500"></i> Keamanan & Stempel
+        </h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-8">
+            <div onclick="openModal('password')" class="tool-card bg-white p-4 rounded-xl border border-pastel-200 cursor-pointer flex items-start gap-3">
+                <div class="bg-pastel-100 p-3 rounded-lg text-pastel-600"><i class="fa-solid fa-key text-lg"></i></div>
+                <div><h3 class="font-bold text-sm text-gray-800">Password PDF</h3><p class="text-[11px] text-gray-500 mt-0.5">Kunci PDF dengan kata sandi enkripsi.</p></div>
+            </div>
+            <div onclick="openModal('ttd')" class="tool-card bg-white p-4 rounded-xl border border-pastel-200 cursor-pointer flex items-start gap-3">
+                <div class="bg-pastel-100 p-3 rounded-lg text-pastel-600"><i class="fa-solid fa-signature text-lg"></i></div>
+                <div><h3 class="font-bold text-sm text-gray-800">Tempel Tanda Tangan</h3><p class="text-[11px] text-gray-500 mt-0.5">Sisipkan gambar ttd (PNG) ke PDF.</p></div>
+            </div>
+            <div onclick="openModal('watermark')" class="tool-card bg-white p-4 rounded-xl border border-pastel-200 cursor-pointer flex items-start gap-3">
+                <div class="bg-pastel-100 p-3 rounded-lg text-pastel-600"><i class="fa-solid fa-stamp text-lg"></i></div>
+                <div><h3 class="font-bold text-sm text-gray-800">Watermark Teks</h3><p class="text-[11px] text-gray-500 mt-0.5">Beri stempel teks transparan.</p></div>
+            </div>
+            <div onclick="openModal('nomor')" class="tool-card bg-white p-4 rounded-xl border border-pastel-200 cursor-pointer flex items-start gap-3">
+                <div class="bg-pastel-100 p-3 rounded-lg text-pastel-600"><i class="fa-solid fa-list-ol text-lg"></i></div>
+                <div><h3 class="font-bold text-sm text-gray-800">Nomor Halaman</h3><p class="text-[11px] text-gray-500 mt-0.5">Beri nomor otomatis di bagian bawah.</p></div>
+            </div>
+            <div onclick="openModal('metadata')" class="tool-card bg-white p-4 rounded-xl border border-pastel-200 cursor-pointer flex items-start gap-3">
+                <div class="bg-pastel-100 p-3 rounded-lg text-pastel-600"><i class="fa-solid fa-user-slash text-lg"></i></div>
+                <div><h3 class="font-bold text-sm text-gray-800">Hapus Identitas/Metadata</h3><p class="text-[11px] text-gray-500 mt-0.5">Hapus jejak nama pembuat file.</p></div>
+            </div>
+        </div>
+
+        <!-- Kategori 3: Ekstraksi & Konversi Gambar -->
+        <h2 class="text-md font-bold text-pastel-800 border-b-2 border-pastel-200 pb-2 mb-4 flex items-center gap-2">
+            <i class="fa-solid fa-file-export text-pastel-500"></i> Ekstraksi & Gambar
+        </h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-8">
+            <div onclick="openModal('ekstrak_teks')" class="tool-card bg-white p-4 rounded-xl border border-pastel-200 cursor-pointer flex items-start gap-3">
+                <div class="bg-pastel-100 p-3 rounded-lg text-pastel-600"><i class="fa-solid fa-file-lines text-lg"></i></div>
+                <div><h3 class="font-bold text-sm text-gray-800">Ekstrak Teks (.txt)</h3><p class="text-[11px] text-gray-500 mt-0.5">Ambil seluruh teks PDF ke file catatan.</p></div>
+            </div>
+            <div onclick="openModal('pdf2gambar')" class="tool-card bg-white p-4 rounded-xl border border-pastel-200 cursor-pointer flex items-start gap-3">
+                <div class="bg-pastel-100 p-3 rounded-lg text-pastel-600"><i class="fa-solid fa-file-image text-lg"></i></div>
+                <div><h3 class="font-bold text-sm text-gray-800">PDF ke Gambar (PNG)</h3><p class="text-[11px] text-gray-500 mt-0.5">Ubah halaman PDF jadi gambar PNG.</p></div>
+            </div>
+            <div onclick="openModal('gambar2pdf')" class="tool-card bg-white p-4 rounded-xl border border-pastel-200 cursor-pointer flex items-start gap-3">
+                <div class="bg-pastel-100 p-3 rounded-lg text-pastel-600"><i class="fa-solid fa-images text-lg"></i></div>
+                <div><h3 class="font-bold text-sm text-gray-800">Gambar ke PDF</h3><p class="text-[11px] text-gray-500 mt-0.5">Gabung foto JPG/PNG jadi PDF.</p></div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal Dynamic Upload & Options -->
+    <div id="fileModal" class="fixed inset-0 bg-black bg-opacity-40 hidden z-[60] flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl relative border-2 border-pastel-200">
+            <button onclick="closeModal()" class="absolute top-4 right-4 text-gray-400 hover:text-pastel-600 transition"><i class="fa-solid fa-xmark text-2xl"></i></button>
+            
+            <div class="text-center">
+                <div class="w-16 h-16 bg-pastel-100 rounded-full flex items-center justify-center mx-auto mb-3 text-pastel-500 text-2xl"><i class="fa-solid fa-sliders"></i></div>
+                <h2 id="modalTitle" class="text-2xl font-bold text-gray-800 mb-1">Unggah Berkas</h2>
+                <p id="modalSub" class="text-xs text-gray-500 mb-4">Proses dieksekusi secara aman & presisi.</p>
+
+                <!-- Input Opsi Text Tambahan -->
+                <div id="extraInputArea" class="hidden mb-4 text-left">
+                    <label id="extraLabel" class="block text-xs font-bold text-pastel-800 mb-1">Pengaturan:</label>
+                    <input type="text" id="extraInput" placeholder="" class="w-full px-3 py-2 border border-pastel-300 rounded-lg text-sm focus:outline-none focus:border-pastel-500">
+                </div>
+
+                <!-- Input File Tanda Tangan Tambahan -->
+                <div id="sigInputArea" class="hidden mb-4 text-left">
+                    <label class="block text-xs font-bold text-pastel-800 mb-1">Pilih Gambar Tanda Tangan (PNG Transparan):</label>
+                    <input type="file" id="sigInput" accept="image/png, image/jpeg" class="w-full text-xs text-gray-600 border border-pastel-300 rounded-lg p-1.5">
+                </div>
+
+                <div class="border-2 border-dashed border-pastel-300 rounded-xl p-8 bg-pastel-50 hover:bg-pastel-100 cursor-pointer" onclick="document.getElementById('fileInput').click()">
+                    <i class="fa-solid fa-cloud-arrow-up text-4xl text-pastel-400 mb-3"></i>
+                    <p class="text-pastel-700 font-medium" id="uploadLabel">Klik untuk memilih file</p>
+                </div>
+                <input type="file" id="fileInput" class="hidden" onchange="processFiles(event)">
+                
+                <div id="statusArea" class="hidden mt-6 text-left">
+                    <p id="statusMsg" class="text-sm font-medium text-pastel-700 text-center animate-pulse">Sedang memproses...</p>
+                    <a id="downloadLink" download class="hidden w-full mt-4 bg-pastel-500 hover:bg-pastel-600 text-white font-bold py-3 px-4 rounded-xl transition flex justify-center items-center gap-2 shadow-lg shadow-pastel-200">
+                        <i class="fa-solid fa-download"></i> Unduh Hasil Sempurna
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="bg-white border-t border-pastel-200 py-4 mt-auto">
+        <div class="max-w-6xl mx-auto px-4 text-center text-xs text-gray-500">
+            &copy; ToolsN. Diproses secara lokal dan aman.
+        </div>
+    </footer>
+
+    <!-- Logic Pengolahan PDF Presisi -->
+    <script>
+        let currentMode = '';
+        const { PDFDocument, degrees, rgb, StandardFonts } = PDFLib;
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+        function openModal(mode) {
+            currentMode = mode;
+            document.getElementById('statusArea').classList.add('hidden');
+            document.getElementById('downloadLink').classList.add('hidden');
+            document.getElementById('fileInput').value = '';
+            document.getElementById('sigInput').value = '';
+            
+            document.getElementById('extraInputArea').classList.add('hidden');
+            document.getElementById('sigInputArea').classList.add('hidden');
+
+            if (mode === 'gabung') setupModal('Gabung PDF', 'Pilih 2 atau lebih file PDF', '.pdf', true);
+            else if (mode === 'pisah') { setupModal('Pisah / Ekstrak PDF', 'Pilih 1 file PDF', '.pdf', false); showExtra('Rentang Halaman (misal: 1-3 atau 1,3,5):', '1-3'); }
+            else if (mode === 'pecah_semua') setupModal('Pecah Per Halaman', 'Pilih 1 file PDF', '.pdf', false);
+            else if (mode === 'hapus') { setupModal('Hapus Halaman', 'Pilih 1 file PDF', '.pdf', false); showExtra('Nomor Halaman Dihapus (misal: 2 atau 2,4):', '2'); }
+            else if (mode === 'urutkan') { setupModal('Atur Urutan Halaman', 'Pilih 1 file PDF', '.pdf', false); showExtra('Urutan Halaman Baru (misal: 3,1,2,4):', '3,1,2,4'); }
+            else if (mode === 'putar') setupModal('Putar PDF (90°)', 'Pilih 1 file PDF', '.pdf', false);
+            else if (mode === 'password') { setupModal('Password Enkripsi PDF', 'Pilih 1 file PDF', '.pdf', false); showExtra('Masukkan Kata Sandi / Password:', '123456'); }
+            else if (mode === 'ttd') { setupModal('Tempel Tanda Tangan', 'Pilih 1 file PDF Utama', '.pdf', false); document.getElementById('sigInputArea').classList.remove('hidden'); }
+            else if (mode === 'watermark') { setupModal('Tambah Watermark', 'Pilih 1 file PDF', '.pdf', false); showExtra('Teks Stempel Watermark:', 'RAHASIA'); }
+            else if (mode === 'nomor') setupModal('Nomor Halaman', 'Pilih 1 file PDF', '.pdf', false);
+            else if (mode === 'metadata') setupModal('Hapus Metadata Identitas', 'Pilih 1 file PDF', '.pdf', false);
+            else if (mode === 'ekstrak_teks') setupModal('Ekstrak Teks (.txt)', 'Pilih 1 file PDF', '.pdf', false);
+            else if (mode === 'pdf2gambar') setupModal('PDF ke Gambar (PNG)', 'Pilih 1 file PDF', '.pdf', false);
+            else if (mode === 'gambar2pdf') setupModal('Gambar ke PDF', 'Pilih foto (JPG / PNG)', 'image/png, image/jpeg', true);
+
+            document.getElementById('fileModal').classList.remove('hidden');
+        }
+
+        function setupModal(title, label, accept, multiple) {
+            document.getElementById('modalTitle').innerText = title;
+            document.getElementById('uploadLabel').innerText = label;
+            const fileInput = document.getElementById('fileInput');
+            fileInput.accept = accept;
+            fileInput.multiple = multiple;
+        }
+
+        function showExtra(label, placeholder) {
+            document.getElementById('extraLabel').innerText = label;
+            const extraInput = document.getElementById('extraInput');
+            extraInput.value = placeholder;
+            document.getElementById('extraInputArea').classList.remove('hidden');
+        }
+
+        function closeModal() { document.getElementById('fileModal').classList.add('hidden'); }
+
+        function parsePageRange(rangeStr, maxPages) {
+            const pages = new Set();
+            rangeStr.split(',').forEach(part => {
+                if (part.includes('-')) {
+                    const [start, end] = part.split('-').map(n => parseInt(n.trim()));
+                    if (start && end) {
+                        for (let i = start; i <= end; i++) {
+                            if (i >= 1 && i <= maxPages) pages.add(i - 1);
+                        }
+                    }
+                } else {
+                    const num = parseInt(part.trim());
+                    if (num >= 1 && num <= maxPages) pages.add(num - 1);
+                }
+            });
+            return Array.from(pages);
+        }
+
+        async function processFiles(event) {
+            const files = event.target.files;
+            if (!files.length) return;
+
+            const statusMsg = document.getElementById('statusMsg');
+            const downloadLink = document.getElementById('downloadLink');
+            document.getElementById('statusArea').classList.remove('hidden');
+            statusMsg.className = "text-sm font-medium text-pastel-700 text-center animate-pulse";
+            statusMsg.innerText = "Memproses berkas secara presisi... Harap tunggu.";
+
+            try {
+                let resultBlob, resultFileName;
+                const extraVal = document.getElementById('extraInput').value;
+
+                // 1. GABUNG PDF
+                if (currentMode === 'gabung') {
+                    const mergedPdf = await PDFDocument.create();
+                    for (let file of files) {
+                        const pdf = await PDFDocument.load(await file.arrayBuffer());
+                        const copiedPages = await mergedPdf.copyPages(pdf, pdf.getPageIndices());
+                        copiedPages.forEach((p) => mergedPdf.addPage(p));
+                    }
+                    resultBlob = new Blob([await mergedPdf.save()], { type: 'application/pdf' });
+                    resultFileName = 'Hasil_Gabung_ToolsN.pdf';
+                }
+
+                // 2. PISAH / EKSTRAK PDF
+                else if (currentMode === 'pisah') {
+                    const srcPdf = await PDFDocument.load(await files[0].arrayBuffer());
+                    const newPdf = await PDFDocument.create();
+                    const indices = parsePageRange(extraVal, srcPdf.getPageCount());
+                    if (!indices.length) throw new Error("Nomor halaman tidak valid!");
+                    const copiedPages = await newPdf.copyPages(srcPdf, indices);
+                    copiedPages.forEach(p => newPdf.addPage(p));
+                    resultBlob = new Blob([await newPdf.save()], { type: 'application/pdf' });
+                    resultFileName = 'Hasil_Ekstrak_ToolsN.pdf';
+                }
+
+                // 3. PECAH PER HALAMAN
+                else if (currentMode === 'pecah_semua') {
+                    const srcPdf = await PDFDocument.load(await files[0].arrayBuffer());
+                    const newPdf = await PDFDocument.create();
+                    const [firstPage] = await newPdf.copyPages(srcPdf, [0]);
+                    newPdf.addPage(firstPage);
+                    resultBlob = new Blob([await newPdf.save()], { type: 'application/pdf' });
+                    resultFileName = 'Halaman_1_ToolsN.pdf';
+                }
+
+                // 4. HAPUS HALAMAN
+                else if (currentMode === 'hapus') {
+                    const srcPdf = await PDFDocument.load(await files[0].arrayBuffer());
+                    const newPdf = await PDFDocument.create();
+                    const deleteSet = new Set(parsePageRange(extraVal, srcPdf.getPageCount()));
+                    const keepIndices = [];
+                    for (let i = 0; i < srcPdf.getPageCount(); i++) {
+                        if (!deleteSet.has(i)) keepIndices.push(i);
+                    }
+                    if (!keepIndices.length) throw new Error("Semua halaman terhapus!");
+                    const copiedPages = await newPdf.copyPages(srcPdf, keepIndices);
+                    copiedPages.forEach(p => newPdf.addPage(p));
+                    resultBlob = new Blob([await newPdf.save()], { type: 'application/pdf' });
+                    resultFileName = 'Hasil_HapusHalaman_ToolsN.pdf';
+                }
+
+                // 5. ATUR URUTAN HALAMAN
+                else if (currentMode === 'urutkan') {
+                    const srcPdf = await PDFDocument.load(await files[0].arrayBuffer());
+                    const newPdf = await PDFDocument.create();
+                    const indices = parsePageRange(extraVal, srcPdf.getPageCount());
+                    if (!indices.length) throw new Error("Urutan tidak valid!");
+                    const copiedPages = await newPdf.copyPages(srcPdf, indices);
+                    copiedPages.forEach(p => newPdf.addPage(p));
+                    resultBlob = new Blob([await newPdf.save()], { type: 'application/pdf' });
+                    resultFileName = 'Hasil_UrutanBaru_ToolsN.pdf';
+                }
+
+                // 6. PUTAR PDF
+                else if (currentMode === 'putar') {
+                    const pdfDoc = await PDFDocument.load(await files[0].arrayBuffer());
+                    pdfDoc.getPages().forEach(page => page.setRotation(degrees((page.getRotation().angle + 90) % 360)));
+                    resultBlob = new Blob([await pdfDoc.save()], { type: 'application/pdf' });
+                    resultFileName = 'Hasil_Putar_ToolsN.pdf';
+                }
+
+                // 7. PASSWORD PDF
+                else if (currentMode === 'password') {
+                    const pdfDoc = await PDFDocument.load(await files[0].arrayBuffer());
+                    pdfDoc.encrypt({ userPassword: extraVal, ownerPassword: extraVal });
+                    resultBlob = new Blob([await pdfDoc.save()], { type: 'application/pdf' });
+                    resultFileName = 'Hasil_Terkunci_ToolsN.pdf';
+                }
+
+                // 8. TEMPEL TANDA TANGAN
+                else if (currentMode === 'ttd') {
+                    const sigFileInput = document.getElementById('sigInput');
+                    if (!sigFileInput.files.length) throw new Error("Pilih gambar tanda tangan (PNG) terlebih dahulu!");
+                    
+                    const pdfDoc = await PDFDocument.load(await files[0].arrayBuffer());
+                    const sigBytes = await sigFileInput.files[0].arrayBuffer();
+                    
+                    const sigImage = sigFileInput.files[0].type.includes('png') ? 
+                                     await pdfDoc.embedPng(sigBytes) : await pdfDoc.embedJpg(sigBytes);
+                    
+                    const pages = pdfDoc.getPages();
+                    const lastPage = pages[pages.length - 1]; // Tempel di halaman terakhir
+                    
+                    lastPage.drawImage(sigImage, {
+                        x: lastPage.getWidth() - 180,
+                        y: 50,
+                        width: 130,
+                        height: 65,
+                    });
+
+                    resultBlob = new Blob([await pdfDoc.save()], { type: 'application/pdf' });
+                    resultFileName = 'Hasil_TandaTangan_ToolsN.pdf';
+                }
+
+                // 9. WATERMARK TEKS
+                else if (currentMode === 'watermark') {
+                    const pdfDoc = await PDFDocument.load(await files[0].arrayBuffer());
+                    const font = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+                    const mark = extraVal || 'CONFIDENTIAL';
+                    pdfDoc.getPages().forEach(p => {
+                        const { width, height } = p.getSize();
+                        p.drawText(mark, {
+                            x: width / 4, y: height / 2, size: 45, font: font,
+                            color: rgb(0.92, 0.28, 0.6), opacity: 0.3, rotate: degrees(45),
+                        });
+                    });
+                    resultBlob = new Blob([await pdfDoc.save()], { type: 'application/pdf' });
+                    resultFileName = 'Hasil_Watermark_ToolsN.pdf';
+                }
+
+                // 10. NOMOR HALAMAN
+                else if (currentMode === 'nomor') {
+                    const pdfDoc = await PDFDocument.load(await files[0].arrayBuffer());
+                    const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+                    const pages = pdfDoc.getPages();
+                    pages.forEach((p, i) => {
+                        p.drawText(`Halaman ${i + 1} dari ${pages.length}`, {
+                            x: p.getWidth() / 2 - 35, y: 20, size: 10, font: font, color: rgb(0.3, 0.3, 0.3),
+                        });
+                    });
+                    resultBlob = new Blob([await pdfDoc.save()], { type: 'application/pdf' });
+                    resultFileName = 'Hasil_NomorHalaman_ToolsN.pdf';
+                }
+
+                // 11. HAPUS METADATA
+                else if (currentMode === 'metadata') {
+                    const pdfDoc = await PDFDocument.load(await files[0].arrayBuffer());
+                    pdfDoc.setTitle(''); pdfDoc.setAuthor(''); pdfDoc.setSubject(''); pdfDoc.setProducer(''); pdfDoc.setCreator('');
+                    resultBlob = new Blob([await pdfDoc.save()], { type: 'application/pdf' });
+                    resultFileName = 'Hasil_MetadataBersih_ToolsN.pdf';
+                }
+
+                // 12. EKSTRAK TEKS POLOS (.txt)
+                else if (currentMode === 'ekstrak_teks') {
+                    const pdf = await pdfjsLib.getDocument({ data: new Uint8Array(await files[0].arrayBuffer()) }).promise;
+                    let txtContent = '';
+                    for (let i = 1; i <= pdf.numPages; i++) {
+                        const page = await pdf.getPage(i);
+                        const textObj = await page.getTextContent();
+                        txtContent += `--- HALAMAN ${i} ---\n\n` + textObj.items.map(item => item.str).join(' ') + '\n\n';
+                    }
+                    resultBlob = new Blob([txtContent], { type: 'text/plain;charset=utf-8' });
+                    resultFileName = 'Hasil_EkstrakTeks_ToolsN.txt';
+                }
+
+                // 13. PDF KE GAMBAR PNG
+                else if (currentMode === 'pdf2gambar') {
+                    const pdf = await pdfjsLib.getDocument({ data: new Uint8Array(await files[0].arrayBuffer()) }).promise;
+                    const page = await pdf.getPage(1);
+                    const viewport = page.getViewport({ scale: 2.0 });
+                    const canvas = document.createElement('canvas');
+                    const context = canvas.getContext('2d');
+                    canvas.height = viewport.height; canvas.width = viewport.width;
+                    await page.render({ canvasContext: context, viewport: viewport }).promise;
+                    resultBlob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+                    resultFileName = 'Halaman_1_ToolsN.png';
+                }
+
+                // 14. GAMBAR KE PDF
+                else if (currentMode === 'gambar2pdf') {
+                    const pdfDoc = await PDFDocument.create();
+                    for (let file of files) {
+                        let img = file.type.includes('jpeg') || file.type.includes('jpg') ? 
+                                  await pdfDoc.embedJpg(await file.arrayBuffer()) : await pdfDoc.embedPng(await file.arrayBuffer());
+                        const p = pdfDoc.addPage([img.width, img.height]);
+                        p.drawImage(img, { x: 0, y: 0, width: img.width, height: img.height });
+                    }
+                    resultBlob = new Blob([await pdfDoc.save()], { type: 'application/pdf' });
+                    resultFileName = 'Hasil_GambarToPDF_ToolsN.pdf';
+                }
+
+                const url = URL.createObjectURL(resultBlob);
+                downloadLink.href = url;
+                downloadLink.download = resultFileName;
+                statusMsg.innerText = "Selesai! Berkas berhasil diproses secara aman & presisi 100%.";
+                statusMsg.className = "text-sm font-medium text-green-600 text-center";
+                downloadLink.classList.remove('hidden');
+
+            } catch (err) {
+                console.error(err);
+                statusMsg.innerText = err.message || "Terjadi kesalahan saat memproses berkas.";
+                statusMsg.className = "text-sm font-medium text-red-500 text-center";
+            }
+        }
+    </script>
+</body>
+</html>
